@@ -49,6 +49,15 @@ class BaseRegistry:
             headers["Authorization"] = f"Bearer {auth_token}"
 
         response = requests.get(url, headers=headers)
+        if response.status_code == 401:
+            www_authenticate_header_value = response.headers.get("www-authenticate")
+            if www_authenticate_header_value is not None:
+                www_authenticate = WWWAuthenticate(www_authenticate_header_value)
+                auth_token = www_authenticate.get_auth_token(repository)
+                if auth_token is not None:
+                    headers["Authorization"] = f"Bearer {auth_token}"
+                response = requests.get(url, headers=headers)
+
         response.raise_for_status()
         header_digest =  response.headers.get("Docker-Content-Digest")
         return header_digest
@@ -67,6 +76,7 @@ known_registries = {
     "registry.docker.io": DockerIO_Registry(),
     "docker.io": DockerIO_Registry(),
     "docker.slythe.net": BaseRegistry("docker.slythe.net"),
+    "ghcr.io": BaseRegistry("ghcr.io"),
 }
 
 def get_image_digest(image_url: str) -> str:

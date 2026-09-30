@@ -6,12 +6,16 @@ import cron_converter
 import datetime
 import logging
 from zoneinfo import ZoneInfo
+import pydantic
+
+if typing.TYPE_CHECKING:
+    from ..docker import service, container
+
 
 class BaseWatcherCheck(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __str__(self):
         pass
-
 
 class BaseWatcher(metaclass=abc.ABCMeta):
     def __init__(self, conf: config.ConfigVariable):
@@ -47,3 +51,9 @@ class BaseWatcher(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def do_check(self) -> typing.List[BaseWatcherCheck]:
         pass
+
+    def is_included(self, instance: 'service.Service' | 'container.Container') -> bool:
+        return True
+        include_all_watcher = pydantic.type_adapter.TypeAdapter(bool).validate_json(instance.labels.get('citadel.include.all_watcher', "false"))
+        return self.include_by_default or include_all_watcher
+

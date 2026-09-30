@@ -14,6 +14,9 @@ supported_type = [
     discord.Discord
 ]
 
+def set_logger(conf: config.Config):
+    logging.root.setLevel(level=conf.global_config.log_level)
+
 def instantiate_types(conf: config.Config) -> typing.Lit[typing.Any]:
     values = []
     for v in conf.variables:
@@ -30,7 +33,7 @@ if __name__ == "__main__":
 
     conf = config.Config(valid_types_name=supported_type_str_list)
 
-    logging.root.setLevel(level=conf.global_config.log_level)
+    set_logger(conf)
 
     watchers = []
     single_message_triggers = []

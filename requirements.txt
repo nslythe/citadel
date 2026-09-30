@@ -2,4 +2,5 @@ docker
 dotenv
 cron-converter
 pydantic
+pydantic_settings
 requests

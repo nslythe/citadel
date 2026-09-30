@@ -5,6 +5,7 @@ from citadel import config
 import logging
 from . import base_watcher
 import typing
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class SwarmWatcherCheck(base_watcher.BaseWatcherCheck):
     def __init__(self, service: service.Service):
@@ -32,17 +33,13 @@ class SwarmWatcher(base_watcher.BaseWatcher):
         return_value = []
         for docker_service in self._client.services:
             logging.debug("check service %s", docker_service.name)
-            if not self.include_by_default and 'citadel.include.all_watcher' not in docker_service.labels:
+            if not self.is_included(docker_service):
+                logging.debug("service %s skipped watch, not included", docker_service.name)
                 continue
 
-            try:
-                registry_image_digest = registry.get_image_digest(docker_service.image)
-                if docker_service.image_digest != registry_image_digest:
-                    return_value.append(SwarmWatcherCheck(docker_service))
-                    break
-
-            except Exception as e:
-                logging.exception(f"{docker_service.image} not found")
+            registry_image_digest = registry.get_image_digest(docker_service.image)
+            if docker_service.image_digest != registry_image_digest:
+                return_value.append(SwarmWatcherCheck(docker_service))
 
         return return_value
 
