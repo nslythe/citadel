@@ -18,11 +18,12 @@ class BaseWatcher(metaclass=abc.ABCMeta):
         self.conf = conf
         self.enable = conf.get("enable", default=True)
         self.include_by_default = conf.get("include-by-default", default=False)
-
         self._timezone_name = conf.get("tz", default=self.conf.global_config.tz)
+        self._cron_str = conf.get("cron", default="*/15 * * * *")
+
         self._timezone = ZoneInfo(self._timezone_name)
         self._cron = cron_converter.Cron()
-        self._cron.from_string(conf.get("cron", default="*/15 * * * *"))
+        self._cron.from_string(self._cron_str)
         self._cron_reference = datetime.datetime.now(tz=self._timezone)
         self._cron_schedule = self._cron.schedule(self._cron_reference)
         self.update_schedule()
