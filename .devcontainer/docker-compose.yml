@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+
+  swarm_updater_dev:
+    container_name: swarm_updater_dev
+    image: python:3.14-bookworm
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    volumes:
+      - ..:/workspace:cached
+    networks:
+      - dev
+
+networks:
+  dev:

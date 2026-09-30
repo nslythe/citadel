@@ -1,0 +1,5 @@
+docker
+dotenv
+cron-converter
+pydantic
+requests
