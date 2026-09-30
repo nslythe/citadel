@@ -1,5 +1,7 @@
 
 # Config
+[examples](doc/config-examples.md)
+
 ## Global config
 ### variables
 | Name               | Default |
