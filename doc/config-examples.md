@@ -20,7 +20,7 @@ citadel_swarm-service-update_updater_pull-on-all-node = true
 ```
 
 ```
-citadel_discord_test_webhook = https://discord.com/api/webhooks/1550161802958995611/eLGMfn4zo7jqMtoTog8eWJedrlSkaWgn-JP249a9QeabmDD4bTMzP0NR2PRP3tIMkwbn
+citadel_discord_test_webhook = https://discord.com/api/webhooks/1554727818829762592/TWO2kv7FrNegEoJ8_b2ujSn8bubrOqP5HWWw5J_RZATbj3t3XChv0Dd0uMPklROdq3rS
 ```
 
 ```
