@@ -6,7 +6,7 @@
 |              |        |
 
 # Watchers
-## variables
+## base watchers variables
 | Name               | Default      |
 | ------------------ | ------------ |
 | enable             | True         |
@@ -17,6 +17,7 @@
 
 ## container-watcher
 ### variables
+Include the [base watchers variables](#base-watchers-variables)
 | Name               | Default |
 | ------------------ | ------- |
 | url                | -       |
@@ -24,6 +25,7 @@
 
 ## swarm-watcher
 ### variables
+Include the [base watchers variables](#base-watchers-variables)
 | Name               | Default |
 | ------------------ | ------- |
 | url                | -       |
