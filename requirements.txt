@@ -4,3 +4,5 @@ cron-converter
 pydantic
 pydantic_settings
 requests
+litestar
+uvicorn

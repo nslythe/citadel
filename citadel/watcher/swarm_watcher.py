@@ -1,11 +1,11 @@
 
 from citadel.docker import client, registry, service
-from citadel import config
 
 import logging
+import pydantic
 from . import base_watcher
+from ..config import type_validator
 import typing
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class SwarmWatcherCheck(base_watcher.BaseWatcherCheck):
     def __init__(self, service: service.Service):
@@ -19,15 +19,20 @@ class SwarmWatcherCheck(base_watcher.BaseWatcherCheck):
         nodes_str = ", ".join(nodes)
         return f"{self._service.stack_namespace}.{self._service.name} on node [{nodes_str}]"
 
+class SwarmWatcherSettings(base_watcher.BaseWatcherSettings):
+    url: type_validator.DockerUrl = pydantic.Field()
+
 class SwarmWatcher(base_watcher.BaseWatcher):
     type_name = "swarm-watcher"
-    def __init__(self, conf: config.Config):
-        super().__init__(conf)
+    settings_class = SwarmWatcherSettings
 
-        self._client = client.Client(url=self.conf.get("url"))
+    def __init__(self, *, name: str, settings: SwarmWatcherSettings):
+        super().__init__(name=name, settings=settings)
+
+        self._client = client.Client(url=settings.url)
 
         if self._client.swarm_id is None:
-            raise Exception(f"watcher is not a swarm manager {self.conf.name}")
+            raise Exception(f"watcher is not a swarm manager {self.name}")
 
     def do_check(self) -> typing.List[SwarmWatcherCheck]:
         return_value = []

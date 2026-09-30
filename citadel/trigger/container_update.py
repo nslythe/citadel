@@ -1,14 +1,17 @@
 
-import abc
 from . import base_trigger
 from ..watcher import container_watcher
-from citadel import config
 import logging
+
+class ContainerUpdateSettings(base_trigger.BaseTriggerSettings):
+    pass
 
 class ContainerUpdate(base_trigger.BaseTriggerSingleMessage):
     type_name = "container-update"
-    def __init__(self, conf: config.ConfigVariable):
-        super().__init__(conf)
+    settings_class = ContainerUpdateSettings
+
+    def __init__(self, *, name: str, settings: ContainerUpdateSettings):
+        super().__init__(name=name, settings=settings)
 
     def do_trigger(self, check: container_watcher.ContainerWatcherCheck):
         if isinstance(check, container_watcher.ContainerWatcherCheck):

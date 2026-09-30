@@ -1,14 +1,14 @@
 
-import abc
-from . import base_trigger
-from ..watcher import base_watcher, swarm_watcher
-from citadel import config
-import logging
 import pydantic
 import typing
 import datetime
 import requests
 from zoneinfo import ZoneInfo
+
+from . import base_trigger
+from ..watcher import base_watcher, swarm_watcher
+from citadel.config import config, type_validator
+import logging
 
 # doc for webhook
 # https://birdie0.github.io/discord-webhooks-guide/structure/username.html
@@ -56,12 +56,17 @@ class DiscordWebhookMessage(pydantic.BaseModel):
     avatar_url: str | None = pydantic.Field(default=None)
     embeds: typing.List[DiscordWebhookEmbed] = pydantic.Field(default_factory=list)
 
+class DiscordSettings(base_trigger.BaseTriggerSettings):
+    webhook: type_validator.HttpUrl = pydantic.Field()
+
 class Discord(base_trigger.BaseTriggerMultiMessage):
     type_name = "discord"
-    def __init__(self, conf: config.ConfigVariable):
-        super().__init__(conf)
-        self._webhook = conf.get("webhook")
-        self._timezone_name = conf.get("tz", default=self.conf.global_config.tz)
+    settings_class = DiscordSettings
+
+    def __init__(self, *, name: str, settings: DiscordSettings):
+        super().__init__(name=name, settings=settings)
+        self._webhook = settings.webhook
+        self._timezone_name = settings.tz if settings.tz is not None else config.global_settings().tz
         self._timezone = ZoneInfo(self._timezone_name)
 
     def do_trigger(self, checks: typing.List[base_watcher.BaseWatcherCheck]):

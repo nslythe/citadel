@@ -1,9 +1,8 @@
 
 from citadel.watcher import base_watcher, swarm_watcher, container_watcher
 from citadel.trigger import base_trigger, swarm_service_update, discord, container_update
-from citadel import config
+from citadel.config import config
 import logging
-import typing
 import time
 
 supported_type = [
@@ -14,33 +13,22 @@ supported_type = [
     discord.Discord
 ]
 
-def set_logger(conf: config.Config):
-    logging.root.setLevel(level=conf.global_config.log_level)
-
-def instantiate_types(conf: config.Config) -> typing.Lit[typing.Any]:
-    values = []
-    for v in conf.variables:
-        for t in supported_type:
-            if v.type_name == t.type_name:
-                values.append(t(v))
-                break
-    return values
+def set_logger():
+    logging.root.setLevel(level=config.global_settings().log_level.upper())
+    logging.getLogger("docker").setLevel(level="ERROR")
+    logging.getLogger("urllib3").setLevel(level="ERROR")
 
 if __name__ == "__main__":
-    supported_type_str_list = []
-    for t in supported_type:
-        supported_type_str_list.append(t.type_name)
+    set_logger()
 
-    conf = config.Config(valid_types_name=supported_type_str_list)
-
-    set_logger(conf)
+    conf = config.Config(plugins=supported_type)
+    conf.load()
 
     watchers = []
     single_message_triggers = []
     multi_message_triggers = []
 
-    values = instantiate_types(conf)
-    for v in values:
+    for v in conf.instances:
         if isinstance(v, base_watcher.BaseWatcher):
             watchers.append(v)
         if isinstance(v, base_trigger.BaseTriggerSingleMessage):
