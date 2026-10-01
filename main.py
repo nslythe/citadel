@@ -1,6 +1,7 @@
 
 from citadel.watcher import  swarm_watcher, container_watcher
 from citadel.trigger import swarm_service_update, discord, container_update
+from citadel.registry import registry
 from citadel.config import app_config
 from citadel import api, app
 import threading
@@ -10,7 +11,8 @@ supported_type = [
     container_watcher.ContainerWatcher,
     swarm_service_update.SwarmServiceUpdate,
     container_update.ContainerUpdate,
-    discord.Discord
+    discord.Discord,
+    registry.CustomRegistry
 ]
 
 if __name__ == "__main__":

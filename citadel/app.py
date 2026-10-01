@@ -3,6 +3,7 @@
 from citadel.watcher import base_watcher, swarm_watcher
 from citadel.trigger import base_trigger
 from citadel.config import config, app_config
+from citadel.registry import registry
 import logging
 import time
 import typing
@@ -14,17 +15,22 @@ class App:
         self._config = config.Config(plugins=self._supported_type)
         self._config.load()
 
+        self._registries: typing.List[registry.CustomRegistry] = []
         self._watchers: typing.List[base_watcher.BaseWatcher] = []
         self._single_message_triggers: typing.List[base_trigger.BaseTriggerSingleMessage] = []
         self._multi_message_triggers: typing.List[base_trigger.BaseTriggerMultiMessage] = []
 
         for v in self._config.instances:
+            if isinstance(v, registry.CustomRegistry):
+                self._registries.append(v)
             if isinstance(v, base_watcher.BaseWatcher):
                 self._watchers.append(v)
             if isinstance(v, base_trigger.BaseTriggerSingleMessage):
                 self._single_message_triggers.append(v)
             if isinstance(v, base_trigger.BaseTriggerMultiMessage):
                 self._multi_message_triggers.append(v)
+
+        self._registries.append(registry.ServerRegistry(name="github", server="ghcr.io"))
 
         # check swarm list
         known_swarm_id = {}
@@ -56,7 +62,7 @@ class App:
     def run(self):
         while True:
             for w in self._watchers:
-                check_list = w.check()
+                check_list = w.check(registries = self._registries)
                 if len(check_list) > 0:
                     for t in self._multi_message_triggers:
                         t.trigger(check_list)

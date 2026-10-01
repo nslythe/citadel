@@ -5,6 +5,7 @@ import datetime
 import logging
 from zoneinfo import ZoneInfo
 from ..config import type_validator, app_config
+from ..registry import registry
 
 import cron_converter
 import pydantic
@@ -46,24 +47,24 @@ class BaseWatcher(metaclass=abc.ABCMeta):
     def update_schedule(self):
         self._next_execution_date = self._cron_schedule.next()
 
-    def check(self) -> typing.List[BaseWatcherCheck]:
+    def check(self, *, registries: typing.List[registry.CustomRegistry] = list()) -> typing.List[BaseWatcherCheck]:
         if not self.enable:
             return []
         if self._foce_run:
             self._foce_run = False
-            return self.execute_do_check()
+            return self.execute_do_check(registries=registries)
         if self._next_execution_date > datetime.datetime.now(self._timezone):
             return []
         self.update_schedule()
-        return self.execute_do_check()
+        return self.execute_do_check(registries=registries)
 
-    def execute_do_check(self):
-        values = self.do_check()
+    def execute_do_check(self, *, registries: typing.List[registry.CustomRegistry]):
+        values = self.do_check(registries=registries)
         logging.info("Watcher %s next execution schedule for %s", self.name, self._next_execution_date)
         return values
 
     @abc.abstractmethod
-    def do_check(self) -> typing.List[BaseWatcherCheck]:
+    def do_check(self, *, registries: typing.List[registry.CustomRegistry]) -> typing.List[BaseWatcherCheck]:
         pass
 
     def is_included(self, instance: 'service.Service' | 'container.Container') -> bool:
