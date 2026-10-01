@@ -7,20 +7,15 @@ from pathlib import Path
 
 import pydantic
 from dotenv import dotenv_values
-from pydantic import AliasChoices
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from . import type_validator
 
 ENV_PREFIX = "citadel_"
 ENV_NESTED_DELIMITER = "__"
 ENV_FILE: Path = Path(".env")
-
 _NAME_REGEX = re.compile(r"[a-zA-Z0-9_-]+")
 
 class ConfigError(Exception):
     pass
-
 
 class BaseCitadelSettings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -29,33 +24,12 @@ class BaseCitadelSettings(BaseSettings):
         extra="ignore",
     )
 
-
-class GlobalSettings(BaseCitadelSettings):
-    model_config = SettingsConfigDict(env_prefix=ENV_PREFIX)
-    log_level: typing.Literal["debug", "info", "warning", "error", "critical"] = pydantic.Field(default="info")
-    tz: type_validator.Timezone = pydantic.Field(default="UTC", validation_alias=AliasChoices("TZ", "citadel_tz"))
-
-    @pydantic.field_validator("log_level", mode="before")
-    @classmethod
-    def _normalize_log_level(cls, value: typing.Any) -> typing.Any:
-        if isinstance(value, str):
-            return value.strip().lower()
-        return value
-
-
-_global_settings: typing.Optional[GlobalSettings] = None
-
-def global_settings() -> GlobalSettings:
-    global _global_settings
-    if _global_settings is None:
-        _global_settings = GlobalSettings(_env_file=ENV_FILE)
-    return _global_settings
-
 class Plugin(typing.Protocol):
     type_name: str
     settings_class: typing.Type[BaseCitadelSettings]
 
-    def __init__(self, *, name: str, settings: typing.Any) -> None: ...
+    def __init__(self, *, name: str, settings: typing.Any) -> None:
+        pass
 
 class Config:
     def __init__(self, *, plugins: typing.Iterable[typing.Any], env_file: typing.Optional[typing.Union[str, Path]] = ENV_FILE,):

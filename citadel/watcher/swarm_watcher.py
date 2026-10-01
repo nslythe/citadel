@@ -29,25 +29,26 @@ class SwarmWatcher(base_watcher.BaseWatcher):
     def __init__(self, *, name: str, settings: SwarmWatcherSettings):
         super().__init__(name=name, settings=settings)
 
-        self._client = client.Client(url=settings.url)
-
-        if self._client.swarm_id is None:
-            raise Exception(f"watcher is not a swarm manager {self.name}")
-
     def do_check(self) -> typing.List[SwarmWatcherCheck]:
-        return_value = []
-        for docker_service in self._client.services:
-            logging.debug("check service %s", docker_service.name)
-            if not self.is_included(docker_service):
-                logging.debug("service %s skipped watch, not included", docker_service.name)
-                continue
+        with client.open(url=self.settings.url) as docker_client:
+            if docker_client.swarm_id is None:
+                raise Exception(f"watcher is not a swarm manager {self.name}")
 
-            registry_image_digest = registry.get_image_digest(docker_service.image)
-            if docker_service.image_digest != registry_image_digest:
-                return_value.append(SwarmWatcherCheck(docker_service))
+            return_value = []
+            for docker_service in docker_client.services:
+                logging.debug("check service %s", docker_service.name)
+                if not self.is_included(docker_service):
+                    logging.debug("service %s skipped watch, not included", docker_service.name)
+                    continue
 
-        return return_value
+                registry_image_digest = registry.get_image_digest(docker_service.image)
+                if docker_service.image_digest != registry_image_digest:
+                    return_value.append(SwarmWatcherCheck(docker_service))
+
+            return return_value
+
 
     @property
     def swarm_id(self) -> str:
-        return self._client.swarm_id
+        with client.open(url=self.settings.url) as docker_client:
+            return docker_client.swarm_id

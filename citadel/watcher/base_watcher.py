@@ -4,7 +4,7 @@ import typing
 import datetime
 import logging
 from zoneinfo import ZoneInfo
-from ..config import type_validator
+from ..config import type_validator, app_config
 
 import cron_converter
 import pydantic
@@ -32,7 +32,7 @@ class BaseWatcher(metaclass=abc.ABCMeta):
         self.settings = settings
         self.enable = settings.enable
         self.include_by_default = settings.include_by_default
-        self._timezone_name = settings.tz if settings.tz is not None else config.global_settings().tz
+        self._timezone_name = settings.tz if settings.tz is not None else app_config.app_settings().tz
         self._cron_str = settings.cron
 
         self._timezone = ZoneInfo(self._timezone_name)

@@ -31,6 +31,20 @@ class Client:
     def get_node(self, id) -> node.Node:
         return node.Node(self, self._docker_client.nodes.get(id))
 
+    def close(self):
+        self._docker_client.close()
+
     @property
     def swarm_id(self) -> str:
         return self._docker_client.swarm.id
+
+    def __enter__(self):
+        return self 
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+
+def open(**kwargs):
+    return Client(**kwargs)
+

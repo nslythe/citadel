@@ -1,7 +1,7 @@
 
 from citadel.watcher import base_watcher, swarm_watcher, container_watcher
 from citadel.trigger import base_trigger, swarm_service_update, discord, container_update
-from citadel.config import config
+from citadel.config import config, app_config
 import logging
 import time
 
@@ -14,7 +14,7 @@ supported_type = [
 ]
 
 def set_logger():
-    logging.root.setLevel(level=config.global_settings().log_level.upper())
+    logging.root.setLevel(level=app_config.app_settings().log_level.upper())
     logging.getLogger("docker").setLevel(level="ERROR")
     logging.getLogger("urllib3").setLevel(level="ERROR")
 
