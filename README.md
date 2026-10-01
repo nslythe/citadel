@@ -1,4 +1,7 @@
 
+# Api
+An API is available to interact with citadel check this [page for more info](/doc/api.md)
+
 # Config
 [examples](doc/config-examples.md)
 

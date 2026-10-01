@@ -5,6 +5,7 @@ import pydantic
 
 class AppSettings(config.BaseCitadelSettings):
     model_config = config.SettingsConfigDict(env_prefix=config.ENV_PREFIX)
+
     log_level: typing.Literal["debug", "info", "warning", "error", "critical"] = pydantic.Field(default="info")
     tz: type_validator.Timezone = pydantic.Field(default="UTC", validation_alias=pydantic.AliasChoices("TZ", "citadel_tz"))
 
