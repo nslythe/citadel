@@ -41,18 +41,26 @@ class BaseWatcher(metaclass=abc.ABCMeta):
         self._cron_reference = datetime.datetime.now(tz=self._timezone)
         self._cron_schedule = self._cron.schedule(self._cron_reference)
         self.update_schedule()
+        self._foce_run = False
 
     def update_schedule(self):
         self._next_execution_date = self._cron_schedule.next()
-        logging.info("Watcher %s next execution schedule for %s", self.name, self._next_execution_date)
 
     def check(self) -> typing.List[BaseWatcherCheck]:
         if not self.enable:
             return []
+        if self._foce_run:
+            self._foce_run = False
+            return self.execute_do_check()
         if self._next_execution_date > datetime.datetime.now(self._timezone):
             return []
         self.update_schedule()
-        return self.do_check()
+        return self.execute_do_check()
+
+    def execute_do_check(self):
+        values = self.do_check()
+        logging.info("Watcher %s next execution schedule for %s", self.name, self._next_execution_date)
+        return values
 
     @abc.abstractmethod
     def do_check(self) -> typing.List[BaseWatcherCheck]:
@@ -61,3 +69,6 @@ class BaseWatcher(metaclass=abc.ABCMeta):
     def is_included(self, instance: 'service.Service' | 'container.Container') -> bool:
         include_all_watcher = pydantic.type_adapter.TypeAdapter(bool).validate_json(instance.labels.get('citadel.include.all_watcher', "false"))
         return self.include_by_default or include_all_watcher
+
+    def force_next_run(self):
+        self._foce_run = True

@@ -9,6 +9,8 @@ services:
       - ..:/workspace:cached
     networks:
       - dev
+    ports:
+      - 8000:8000
 
 networks:
   dev:
