@@ -5,7 +5,7 @@ import logging
 import pydantic
 from . import base_watcher
 from ..config import type_validator
-from ..registry import registry
+from .. import app as citadel_app
 import typing
 
 class SwarmWatcherCheck(base_watcher.BaseWatcherCheck):
@@ -30,7 +30,7 @@ class SwarmWatcher(base_watcher.BaseWatcher):
     def __init__(self, *, name: str, settings: SwarmWatcherSettings):
         super().__init__(name=name, settings=settings)
 
-    def do_check(self, *, registries: typing.List[registry.CustomRegistry]) -> typing.List[SwarmWatcherCheck]:
+    def do_check(self, *, app: citadel_app.App) -> typing.List[SwarmWatcherCheck]:
         with client.open(url=self.settings.url) as docker_client:
             if docker_client.swarm_id is None:
                 raise Exception(f"watcher is not a swarm manager {self.name}")
@@ -42,15 +42,8 @@ class SwarmWatcher(base_watcher.BaseWatcher):
                     logging.debug("service %s skipped watch, not included", docker_service.name)
                     continue
 
-                found_registry = None
-                for r in registries:
-                    if r.docker_registry.include(docker_service.image):
-                        found_registry = r.docker_registry
-                        break
-                if found_registry is None:
-                    found_registry = registry.DockerIO_Registry()
-
-                registry_image_digest = found_registry.get_image_digest(docker_service.image)
+                registry_image_digest = app.registry_manager.get_image_digest(docker_service.image)
+                
                 if docker_service.image_digest != registry_image_digest:
                     return_value.append(SwarmWatcherCheck(docker_service))
 

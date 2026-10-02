@@ -5,7 +5,7 @@ import datetime
 import logging
 from zoneinfo import ZoneInfo
 from ..config import type_validator, app_config
-from ..registry import registry
+from .. import app as citadel_app
 
 import cron_converter
 import pydantic
@@ -17,7 +17,7 @@ if typing.TYPE_CHECKING:
 
 class BaseWatcherSettings(config.BaseCitadelSettings):
     enable: bool = pydantic.Field(default=True)
-    include_by_default: bool = pydantic.Field(default=False)
+    include_by_default: bool = pydantic.Field(default=True)
     tz: typing.Optional[type_validator.Timezone] = pydantic.Field(default=None)
     cron: type_validator.CronExpression = pydantic.Field(default="*/15 * * * *")
 
@@ -47,24 +47,24 @@ class BaseWatcher(metaclass=abc.ABCMeta):
     def update_schedule(self):
         self._next_execution_date = self._cron_schedule.next()
 
-    def check(self, *, registries: typing.List[registry.CustomRegistry] = list()) -> typing.List[BaseWatcherCheck]:
+    def check(self, *, app: citadel_app.App) -> typing.List[BaseWatcherCheck]:
         if not self.enable:
             return []
         if self._foce_run:
             self._foce_run = False
-            return self.execute_do_check(registries=registries)
+            return self.execute_do_check(app=app)
         if self._next_execution_date > datetime.datetime.now(self._timezone):
             return []
         self.update_schedule()
-        return self.execute_do_check(registries=registries)
+        return self.execute_do_check(app=app)
 
-    def execute_do_check(self, *, registries: typing.List[registry.CustomRegistry]):
-        values = self.do_check(registries=registries)
+    def execute_do_check(self, *, app: citadel_app.App):
+        values = self.do_check(app=app)
         logging.info("Watcher %s next execution schedule for %s", self.name, self._next_execution_date)
         return values
 
     @abc.abstractmethod
-    def do_check(self, *, registries: typing.List[registry.CustomRegistry]) -> typing.List[BaseWatcherCheck]:
+    def do_check(self, *, app: citadel_app.App) -> typing.List[BaseWatcherCheck]:
         pass
 
     def is_included(self, instance: 'service.Service' | 'container.Container') -> bool:
