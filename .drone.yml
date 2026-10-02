@@ -1,14 +1,12 @@
 
-environment:
-  LOCAL_DOCKER_REGISTRY:
-    from_secret: local_docker_registry
-
 pipeline:
   build:
     image: docker
+    local_docker_registry:
+      from_secret: local_docker_registry
     commands:
-      - docker build . -t $LOCAL_DOCKER_REGISTRY/citadel
-      - docker push $LOCAL_DOCKER_REGISTRY/citadel
+      - docker build . -t $PLUGIN_LOCAL_DOCKER_REGISTRY/citadel
+      - docker push $PLUGIN_LOCAL_DOCKER_REGISTRY/citadel
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
